@@ -8,21 +8,23 @@ f:SetScript("OnEvent", function(f, event)
     end
 end)
 
+local Spell = { descriptionMatcher = "" }
+Spell.implementations = {}
+
 -- This is run on item/spell/talent mouseover and once every 0.5s during mouseover
 function OnTooltipSpell(self)
     local _, spellId = self:GetSpell();
 
-    local desc = GetSpellDescription(spellId);
-    local damageOrHealing = parseDescription(spellId, desc);
+    local spell = Spell:FromId(spellId)
 
-    if damageOrHealing == nil then
+    if spell == nil then
         GameTooltip:AddLine(string.format("Spell id: %i", spellId), 1, 1, 1, true);
         GameTooltip:Show();
         return
     end
 
+    local damageOrHealing = spell:GetDmgOrHealing()
     local name, rank, icon, castTime, minRange, maxRange, _ = GetSpellInfo(spellId)
-
 
     --print(string.format("spell id: %i",spellId));
     --print(string.format("desc: %s",desc));
@@ -52,7 +54,47 @@ function GetManaCost(spellId)
     return manaCost;
 end
 
+
+
+function Spell:define(spellId, definition)
+    local definition = definition or {}
+    setmetatable(definition, self)
+    self.__index = self
+    Spell.implementations[spellId] = definition
+
+    definition.spellId = spellId
+    return definition
+end
+
+function Spell:FromId(spellId)
+    local spell = Spell.implementations[spellId]
+    if spell then
+        return spell
+    end
+    return nil
+end
+
+function Spell:GetDmgOrHealing()
+    local description = GetSpellDescription(self.spellId)
+    local heal, duration = string.match(description, self.descriptionMatcher)
+    if heal == nil then
+        print("heal is null")
+        return -1
+    end
+
+    return toNumber2(heal)
+end
+
+local Rejuvenation = Spell:define(774, { descriptionMatcher = "Heals the target for (%d[%d.,]*) over (%d+) sec." })
+
+local FlashOfLight = Spell:define(19750, { descriptionMatcher = "Expends a large amount of mana to quickly heal a friendly target for (%d[%d.,]*)." })
+local HolyLight = Spell:define(82326, { descriptionMatcher = "An efficient spell, healing a friendly target for (%d[%d.,]*)." })
+local HolyShock = Spell:define(20473, { descriptionMatcher = "Triggers a burst of Light on the target, dealing (%d[%d.,]*) ." })
+
+
+
 function parseDescription(spellId, description)
+    -- druid
     if spellId == 774 then
         return parseRejuvenation(description);
     end
@@ -65,8 +107,18 @@ function parseDescription(spellId, description)
     if spellId == 18562 then
         return parseSwiftmend(description);
     end
+
+    -- paladin
+    if spellId == 19750 then
+        return parseFlashOfLight(description);
+    end
+
     return nil;
 end
+
+
+
+-- druid
 
 function parseRejuvenation(description)
     -- %d[%d.,]* is for handling , as the thousand separator
@@ -108,13 +160,29 @@ function parseSwiftmend(description)
     return toNumber2(heal);
 end
 
+
+
+-- paladin
+
+function parseFlashOfLight(description)
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local heal, duration = string.match(description, "Expends a large amount of mana to quickly heal a friendly target for (%d[%d.,]*).");
+    if heal == nil then
+        print("heal is null")
+        return -1;
+    end
+    return toNumber2(heal);
+end
+
+
+
 GameTooltip:HookScript("OnTooltipSetSpell", OnTooltipSpell)
 
 -- just a function to print a table, nice for debugging
-function dump(o)
-    if type(o) == 'table' then
+function dump(definition)
+    if type(definition) == 'table' then
         local s = '{ '
-        for k, v in pairs(o) do
+        for k, v in pairs(definition) do
             if type(k) ~= 'number' then
                 k = '"' .. k .. '"'
             end
@@ -122,7 +190,7 @@ function dump(o)
         end
         return s .. '} '
     else
-        return tostring(o)
+        return tostring(definition)
     end
 end
 
