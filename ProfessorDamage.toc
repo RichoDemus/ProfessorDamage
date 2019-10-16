@@ -6,3 +6,6 @@
 
 
 ProfessorDamage.lua
+
+## UnitClasses\Druid.lua
+UnitClasses\Paladin.lua
