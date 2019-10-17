@@ -12,7 +12,6 @@ end
 
 local HolyLight = PHD.Spell:NewWithId(82326)
 function HolyLight:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local heal = string.match(self.description, "An efficient spell, healing a friendly target for (%d[%d.,]*).")
     if heal == nil then
         return
@@ -21,4 +20,74 @@ function HolyLight:Compute()
     self:ReturnValues { heal = PHD:StrToNumber(heal) }
 end
 
--- local HolyShock = Spell:NewWithId(20473, { descriptionMatcher = "Triggers a burst of Light on the target, dealing (%d[%d.,]*) ." })
+local HolyShock = PHD.Spell:NewWithId(20473)
+function HolyShock:Compute()
+    local dmg, heal = string.match(self.description, "Triggers a burst of Light on the target, dealing (%d[%d.,]*) Holy damage to an enemy, or (%d[%d.,]*) healing to an ally.")
+    if dmg == nil or heal == nil then
+        return
+    end
+
+    self:ReturnValues {
+        dmg = PHD:StrToNumber(dmg),
+        heal = PHD:StrToNumber(heal)
+    }
+end
+
+local LightOfDawn = PHD.Spell:NewWithId(85222)
+function LightOfDawn:Compute()
+    local heal = string.match(self.description, "Unleashes a wave of holy energy, healing up to 5 injured allies within a 15 yd frontal cone for (%d[%d.,]*).")
+    if heal == nil then
+        return
+    end
+
+    local heal = PHD:StrToNumber(heal)
+
+    self:ReturnValues {
+        heal = heal,
+        aoeHpm = self:GetValPerMana(heal * 3)
+    }
+end
+
+local LightOfTheMartyr = PHD.Spell:NewWithId(183998)
+function LightOfTheMartyr:Compute()
+    local heal = string.match(self.description, "Sacrifice a portion of your own health to instantly heal an ally for (%d[%d.,]*).")
+    if heal == nil then
+        return
+    end
+
+    self:ReturnValues { heal = PHD:StrToNumber(heal) }
+end
+
+local BestowFaith = PHD.Spell:NewWithId(223306)
+function BestowFaith:Compute()
+    local heal = string.match(self.description, "Begin mending the wounds of a friendly target, healing them for (%d[%d.,]*) after 5 sec.")
+    if heal == nil then
+        return
+    end
+
+    self:ReturnValues { heal = PHD:StrToNumber(heal) }
+end
+
+local HolyPrism = PHD.Spell:NewWithId(114165)
+function HolyPrism:Compute()
+    local offensiveDmg, offensiveHeal = string.match(self.description, "If the beam is aimed at an enemy target, it deals (%d[%d.,]*) Holy damage and radiates (%d[%d.,]*) healing")
+    if offensiveDmg == nil then
+        return
+    end
+
+    local defensiveHeal, defensiveDmg = string.match(self.description, "If the beam is aimed at a friendly target, it heals for (%d[%d.,]*) and radiates (%d[%d.,]*) Holy damage")
+    if defensiveHeal == nil then
+        return
+    end
+
+    local defDmg = PHD:StrToNumber(defensiveDmg)
+    local offHeal = PHD:StrToNumber(offensiveHeal)
+
+    self:ReturnValues {
+        dmg = PHD:StrToNumber(offensiveDmg),
+        aoeDpm = self:GetValPerMana(defDmg * 3),
+
+        heal = PHD:StrToNumber(defensiveHeal),
+        aoeHpm = self:GetValPerMana(offHeal * 3)
+    }
+end

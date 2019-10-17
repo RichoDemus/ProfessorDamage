@@ -1,13 +1,5 @@
--- todo remove, I'm 95% sure it wouldn't break the addon
--- local f = CreateFrame("Frame")
--- f:RegisterEvent("PLAYER_LOGIN")
--- f:SetScript("OnEvent", function(f, event)
---     if event == "PLAYER_LOGIN" then
---         local _, englishClass = UnitClass("player")
---         print("Hello, world,", englishClass)
---     end
--- end)
 
+-- Professor H. Damage at your service! (it's french, probably)
 PHD = {}
 PHD.Spell = { descriptionMatcher = "" }
 PHD.Spell.Implementations = {}
@@ -18,40 +10,35 @@ function OnTooltipSetSpell(self)
 
     local spell = PHD:GetSpellFromId(spellId)
 
+    -- not a spell the jedi would tell you about?
     if spell == nil then
         PHD:AddTooltipLine("Spell id: %i", spellId)
         GameTooltip:Show()
         return
     end
 
-    --local damageOrHealing = spell:GetDmgOrHealing()
-    --local name, rank, icon, castTime, minRange, maxRange, _ = GetSpellInfo(spellId)
-
-    --print(string.format("spell id: %i",spellId));
-    --print(string.format("desc: %s",desc));
-    --print(string.format("cast: %s",castTime));
-
-    --local manaCost = PHD:GetManaCost(spellId)
-    --print(string.format("cost: %s",manaCost));
-
-    --print(string.format("healing: %s",damageOrHealing));
-    --local hpm = damageOrHealing / manaCost;
-
+    -- run calculations specific for this particular spell
     local stats = spell:RunComputations()
 
-    if stats.heal then PHD:AddTooltipLine("Healing: %i", stats.heal) end
-    if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
-
+    -- add relevant info to the tooltip about to be shown
     PHD:AddTooltipLine("Mana Cost: %i", stats.manaCost)
 
-    if stats.hpm then PHD:AddTooltipLine("HPM: %6.1f", stats.hpm) end
-    if stats.dpm then PHD:AddTooltipLine("DPM: %6.1f", stats.dpm) end
+    if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
+    if stats.dpm then PHD:AddTooltipLine("DpM: %6.1f", stats.dpm) end
+    if stats.aoeDpm then PHD:AddTooltipLine("AoE (3p) DpM: %6.1f", stats.aoeDpm) end
+
+    if stats.heal then PHD:AddTooltipLine("Healing: %i", stats.heal) end
+    if stats.hot then PHD:AddTooltipLine("HoT: %i", stats.hot) end
+    if stats.postHeal then PHD:AddTooltipLine("Post Heal: %i", stats.postHeal) end
+    if stats.aoeHpm then PHD:AddTooltipLine("AoE (3p) HpM: %6.1f", stats.aoeHpm) end
+    if stats.hpm then PHD:AddTooltipLine("HpM: %6.1f", stats.hpm) end
 
     GameTooltip:Show()
 end
 
 GameTooltip:HookScript("OnTooltipSetSpell", OnTooltipSetSpell)
 
+-- ask the professor for a registered spell with a given id
 function PHD:GetSpellFromId(spellId)
     local spell = PHD.Spell.Implementations[spellId]
     if spell then
@@ -60,21 +47,22 @@ function PHD:GetSpellFromId(spellId)
     return nil
 end
 
+-- returns the mana cost of a given spell
 function PHD:GetManaCost(spellId)
     -- returns a collection of mana costs since different spells use different resources
-    local costs = GetSpellPowerCost(spellId);
-    --print(string.format("costs: %s",dump(costs)));
+    local costs = GetSpellPowerCost(spellId)
 
     -- I think [1] is always mana
-    local manaCost = costs[1].cost;
-    --print(string.format("cost: %s",manaCost));
-    return manaCost;
+    local manaCost = costs[1].cost
+    return manaCost
 end
 
+-- simplified way of adding text to the tooltip
 function PHD:AddTooltipLine(formatString, value)
     GameTooltip:AddLine(string.format(formatString, value), 1, 1, 1, true)
 end
 
+-- parse a numerical representation in text with comma being the thousand separator
 function PHD:StrToNumber(str)
     local withoutComma = string.gsub(str, ",", "");
     return tonumber(withoutComma);
@@ -82,8 +70,8 @@ end
 
 
 
--- "instantiate" a new spell object
-function PHD.Spell:NewWithId(spellId, spellParser)
+-- "instantiate"/register a new spell object
+function PHD.Spell:NewWithId(spellId)
     local definition = {}
     setmetatable(definition, self)
     self.__index = self
@@ -94,7 +82,6 @@ function PHD.Spell:NewWithId(spellId, spellParser)
     local manaCost = PHD:GetManaCost(spellId)
 
     definition.spellId = spellId
-    definition.spellParser = spellParser
     definition.description = description
     definition.manaCost = manaCost
 
@@ -106,27 +93,38 @@ function PHD.Spell:Compute()
     self:ReturnValues {}
 end
 
-function PHD.Spell:GetValPerMinute(val)
+-- returns "x per mana" for some value
+function PHD.Spell:GetValPerMana(val)
     return val / self.manaCost
 end
 
+-- structured way of returning values from spell value computations
 function PHD.Spell:ReturnValues(result)
     self.result = result
 end
 
+-- triggers value computations to run for a given spell implementation and takes care of the result
 function PHD.Spell:RunComputations()
     self.result = {}
     self:Compute()
     local result = self.result
 
+    -- convert stuff to numbers if they are strings
+    -- TODO: this doesn't seem to work... >_<
+    for k, v in pairs(result) do
+        if type(v) ~= 'string' then
+            result[k] = PHD:StrToNumber(v)
+        end
+    end
+
     result.manaCost = self.manaCost
 
     if result.heal then
-        result.hpm = self:GetValPerMinute(result.heal)
+        result.hpm = self:GetValPerMana(result.heal)
     end
 
     if result.dmg then
-        result.dpm = self:GetValPerMinute(result.dmg)
+        result.dpm = self:GetValPerMana(result.dmg)
     end
 
     return result

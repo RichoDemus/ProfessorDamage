@@ -1,42 +1,52 @@
 
--- local Rejuvenation = Spell:NewWithId(774, { descriptionMatcher = "Heals the target for (%d[%d.,]*) over (%d+) sec." })
-
-function parseRejuvenation(description)
+local Rejuvenation = PHD.Spell:NewWithId(774)
+function Rejuvenation:Compute()
     -- %d[%d.,]* is for handling , as the thousand separator
-    local heal, duration = string.match(description, "Heals the target for (%d[%d.,]*) over (%d+) sec.");
+    local heal, duration = string.match(description, "Heals the target for (%d[%d.,]*) over (%d+) sec.")
     if heal == nil then
-        print("heal is null")
-        return -1;
+        return
     end
-    return toNumber2(heal);
+
+    self:ReturnValues { heal = PHD:StrToNumber(heal) }
 end
 
-function parseRegrowth(description)
-    -- %d[%d.,]* is for handling , as the thousand separator
-    local initialHeal, healOverTime, duration = string.match(description, "Heals a friendly target for (%d[%d.,]*) and another (%d[%d.,]*) over (%d+) sec.");
-    if initialHeal == nil then
-        print("heal is null")
-        return -1;
+local Regrowth = PHD.Spell:NewWithId(8936)
+function Regrowth:Compute()
+    local initialHeal, healOverTime, duration = string.match(description, "Heals a friendly target for (%d[%d.,]*) and another (%d[%d.,]*) over (%d+) sec.")
+    if initialHeal == nil or healOverTime == nil then
+        return
     end
-    return toNumber2(initialHeal) + toNumber2(healOverTime);
+
+    local direct = PHD:StrToNumber(initialHeal)
+    local hot = PHD:StrToNumber(healOverTime)
+    self:ReturnValues {
+        heal = direct + hot,
+        hot = hot
+    }
 end
 
-function parseLifebloom(description)
-    -- %d[%d.,]* is for handling , as the thousand separator
-    local healOverTime, duration, bloomHeal = string.match(description, "Heals the target for (%d[%d.,]*) over (%d+) sec. When Lifebloom expires or is dispelled, the target is instantly healed for (%d[%d.,]*). Limit 1.");
-    if healOverTime == nil then
-        print("heal is null")
-        return -1;
+local Lifebloom = PHD.Spell:NewWithId(33763)
+function Lifebloom:Compute()
+    local healOverTime, duration, bloomHeal = string.match(description, "Heals the target for (%d[%d.,]*) over (%d+) sec. When Lifebloom expires or is dispelled, the target is instantly healed for (%d[%d.,]*). Limit 1.")
+    if bloomHeal == nil or healOverTime == nil then
+        return
     end
-    return toNumber2(healOverTime) + toNumber2(bloomHeal);
+
+    local bloom = PHD:StrToNumber(bloomHeal)
+    local hot = PHD:StrToNumber(healOverTime)
+    self:ReturnValues {
+        heal = bloom + hot,
+        hot = hot,
+        postHeal = bloom
+    }
 end
 
-function parseSwiftmend(description)
-    -- %d[%d.,]* is for handling , as the thousand separator
-    local heal = string.match(description, "Instantly heals a friendly target for (%d[%d.,]*).");
+local Swiftmend = PHD.Spell:NewWithId(18562)
+function Swiftmend:Compute()
+    local heal = string.match(description, "Instantly heals a friendly target for (%d[%d.,]*).")
     if heal == nil then
-        print("heal is null")
-        return -1;
+        return
     end
-    return toNumber2(heal);
+
+    self:ReturnValues { heal = PHD:StrToNumber(heal) }
 end
