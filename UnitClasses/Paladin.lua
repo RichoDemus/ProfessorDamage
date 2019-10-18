@@ -7,7 +7,7 @@ function FlashOfLight:Compute()
         return
     end
 
-    self:ReturnValues { heal = PHD:StrToNumber(heal) }
+    return { heal = PHD:StrToNumber(heal) }
 end
 
 local HolyLight = PHD.Spell:NewWithId(82326)
@@ -17,7 +17,7 @@ function HolyLight:Compute()
         return
     end
 
-    self:ReturnValues { heal = PHD:StrToNumber(heal) }
+    return { heal = PHD:StrToNumber(heal) }
 end
 
 local HolyShock = PHD.Spell:NewWithId(20473)
@@ -27,7 +27,7 @@ function HolyShock:Compute()
         return
     end
 
-    self:ReturnValues {
+    return {
         dmg = PHD:StrToNumber(dmg),
         heal = PHD:StrToNumber(heal)
     }
@@ -42,7 +42,7 @@ function LightOfDawn:Compute()
 
     local heal = PHD:StrToNumber(heal)
 
-    self:ReturnValues {
+    return {
         heal = heal,
         aoeHpm = self:GetValPerMana(heal * 3)
     }
@@ -55,7 +55,7 @@ function LightOfTheMartyr:Compute()
         return
     end
 
-    self:ReturnValues { heal = PHD:StrToNumber(heal) }
+    return { heal = PHD:StrToNumber(heal) }
 end
 
 local BestowFaith = PHD.Spell:NewWithId(223306)
@@ -65,7 +65,7 @@ function BestowFaith:Compute()
         return
     end
 
-    self:ReturnValues { heal = PHD:StrToNumber(heal) }
+    return { heal = PHD:StrToNumber(heal) }
 end
 
 local HolyPrism = PHD.Spell:NewWithId(114165)
@@ -83,7 +83,7 @@ function HolyPrism:Compute()
     local defDmg = PHD:StrToNumber(defensiveDmg)
     local offHeal = PHD:StrToNumber(offensiveHeal)
 
-    self:ReturnValues {
+    return {
         dmg = PHD:StrToNumber(offensiveDmg),
         aoeDpm = self:GetValPerMana(defDmg * 3),
 

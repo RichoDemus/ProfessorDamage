@@ -77,10 +77,6 @@ function PHD.Spell:NewWithId(spellId)
     self.__index = self
     PHD.Spell.Implementations[spellId] = definition
 
-    local description = GetSpellDescription(spellId)
-    local name, rank, icon, castTime, minRange, maxRange, _ = GetSpellInfo(spellId)
-    local manaCost = PHD:GetManaCost(spellId)
-
     definition.spellId = spellId
 
     return definition
@@ -106,18 +102,11 @@ function PHD.Spell:GetValPerMana(val)
     return val / self.manaCost
 end
 
--- structured way of returning values from spell value computations
-function PHD.Spell:ReturnValues(result)
-    self.result = result
-end
-
 -- triggers value computations to run for a given spell implementation and takes care of the result
 function PHD.Spell:RunComputations()
     self:GetStats()
 
-    self.result = {}
-    self:Compute()
-    local result = self.result
+    local result = self:Compute()
 
     -- convert stuff to numbers if they are strings
     -- TODO: this doesn't seem to work... >_<
