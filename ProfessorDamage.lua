@@ -58,8 +58,8 @@ function PHD:GetManaCost(spellId)
 end
 
 -- simplified way of adding text to the tooltip
-function PHD:AddTooltipLine(formatString, value)
-    GameTooltip:AddLine(string.format(formatString, value), 1, 1, 1, true)
+function PHD:AddTooltipLine(formatString, ...)
+    GameTooltip:AddLine(string.format(formatString, ...), 1, 1, 1, true)
 end
 
 -- parse a numerical representation in text with comma being the thousand separator
