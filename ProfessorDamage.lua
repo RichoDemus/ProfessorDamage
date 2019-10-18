@@ -82,8 +82,6 @@ function PHD.Spell:NewWithId(spellId)
     local manaCost = PHD:GetManaCost(spellId)
 
     definition.spellId = spellId
-    definition.description = description
-    definition.manaCost = manaCost
 
     return definition
 end
@@ -91,6 +89,16 @@ end
 -- default/fallback implementation for computations
 function PHD.Spell:Compute()
     self:ReturnValues {}
+end
+
+-- fetch current, updated statistics for a respective spell
+function PHD.Spell:GetStats()
+    local description = GetSpellDescription(self.spellId)
+    local name, rank, icon, castTime, minRange, maxRange, _ = GetSpellInfo(self.spellId)
+    local manaCost = PHD:GetManaCost(self.spellId)
+
+    self.description = description
+    self.manaCost = manaCost
 end
 
 -- returns "x per mana" for some value
@@ -105,6 +113,8 @@ end
 
 -- triggers value computations to run for a given spell implementation and takes care of the result
 function PHD.Spell:RunComputations()
+    self:GetStats()
+
     self.result = {}
     self:Compute()
     local result = self.result
