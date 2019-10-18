@@ -84,7 +84,7 @@ end
 
 -- default/fallback implementation for computations
 function PHD.Spell:Compute()
-    self:ReturnValues {}
+    return {}
 end
 
 -- fetch current, updated statistics for a respective spell
