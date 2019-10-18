@@ -1,120 +1,141 @@
--- todo remove, I'm 95% sure it wouldn't break the addon
-local f = CreateFrame("Frame")
-f:RegisterEvent("PLAYER_LOGIN")
-f:SetScript("OnEvent", function(f, event)
-    if event == "PLAYER_LOGIN" then
-        local _, englishClass = UnitClass("player")
-        print("Hello, world,", englishClass)
-    end
-end)
+
+-- Professor H. Damage at your service! (it's french, probably)
+PHD = {}
+PHD.Spell = { descriptionMatcher = "" }
+PHD.Spell.Implementations = {}
 
 -- This is run on item/spell/talent mouseover and once every 0.5s during mouseover
-function OnTooltipSpell(self)
-    local _, spellId = self:GetSpell();
+function OnTooltipSetSpell(self)
+    local _, spellId = self:GetSpell()
 
-    local desc = GetSpellDescription(spellId);
-    local damageOrHealing = parseDescription(spellId, desc);
+    local spell = PHD:GetSpellFromId(spellId)
 
-    if damageOrHealing == nil then
-        GameTooltip:AddLine(string.format("Spell id: %i", spellId), 1, 1, 1, true);
-        GameTooltip:Show();
+    -- not a spell the jedi would tell you about?
+    if spell == nil then
+        PHD:AddTooltipLine("Spell id: %i", spellId)
+        GameTooltip:Show()
         return
     end
 
-    local name, rank, icon, castTime, minRange, maxRange, _ = GetSpellInfo(spellId)
+    -- run calculations specific for this particular spell
+    local stats = spell:RunComputations()
 
+    -- add relevant info to the tooltip about to be shown
+    PHD:AddTooltipLine("Mana Cost: %i", stats.manaCost)
 
-    --print(string.format("spell id: %i",spellId));
-    --print(string.format("desc: %s",desc));
-    --print(string.format("cast: %s",castTime));
+    if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
+    if stats.dpm then PHD:AddTooltipLine("DpM: %6.1f", stats.dpm) end
+    if stats.aoeDpm then PHD:AddTooltipLine("AoE (3p) DpM: %6.1f", stats.aoeDpm) end
 
-    local manaCost = GetManaCost(spellId)
-    --print(string.format("cost: %s",manaCost));
+    if stats.heal then PHD:AddTooltipLine("Healing: %i", stats.heal) end
+    if stats.hot then PHD:AddTooltipLine("HoT: %i", stats.hot) end
+    if stats.postHeal then PHD:AddTooltipLine("Post Heal: %i", stats.postHeal) end
+    if stats.aoeHpm then PHD:AddTooltipLine("AoE (3p) HpM: %6.1f", stats.aoeHpm) end
+    if stats.hpm then PHD:AddTooltipLine("HpM: %6.1f", stats.hpm) end
 
-    --print(string.format("healing: %s",damageOrHealing));
-    local hpm = damageOrHealing / manaCost;
-
-    GameTooltip:AddLine(string.format("Healing: %i", damageOrHealing), 1, 1, 1, true);
-    GameTooltip:AddLine(string.format("Mana Cost: %i", manaCost), 1, 1, 1, true);
-    GameTooltip:AddLine(string.format("HPM: %6.1f", hpm), 1, 1, 1, true);
-
-    GameTooltip:Show();
+    GameTooltip:Show()
 end
 
-function GetManaCost(spellId)
+GameTooltip:HookScript("OnTooltipSetSpell", OnTooltipSetSpell)
+
+-- ask the professor for a registered spell with a given id
+function PHD:GetSpellFromId(spellId)
+    local spell = PHD.Spell.Implementations[spellId]
+    if spell then
+        return spell
+    end
+    return nil
+end
+
+-- returns the mana cost of a given spell
+function PHD:GetManaCost(spellId)
     -- returns a collection of mana costs since different spells use different resources
-    local costs = GetSpellPowerCost(spellId);
-    --print(string.format("costs: %s",dump(costs)));
+    local costs = GetSpellPowerCost(spellId)
 
     -- I think [1] is always mana
-    local manaCost = costs[1].cost;
-    --print(string.format("cost: %s",manaCost));
-    return manaCost;
+    local manaCost = costs[1].cost
+    return manaCost
 end
 
-function parseDescription(spellId, description)
-    if spellId == 774 then
-        return parseRejuvenation(description);
-    end
-    if spellId == 8936 then
-        return parseRegrowth(description);
-    end
-    if spellId == 33763 then
-        return parseLifebloom(description);
-    end
-    if spellId == 18562 then
-        return parseSwiftmend(description);
-    end
-    return nil;
+-- simplified way of adding text to the tooltip
+function PHD:AddTooltipLine(formatString, ...)
+    GameTooltip:AddLine(string.format(formatString, ...), 1, 1, 1, true)
 end
 
-function parseRejuvenation(description)
-    -- %d[%d.,]* is for handling , as the thousand separator
-    local heal, duration = string.match(description, "Heals the target for (%d[%d.,]*) over (%d+) sec.");
-    if heal == nil then
-        print("heal is null")
-        return -1;
-    end
-    return toNumber2(heal);
+-- parse a numerical representation in text with comma being the thousand separator
+function PHD:StrToNumber(str)
+    local withoutComma = string.gsub(str, ",", "");
+    return tonumber(withoutComma);
 end
 
-function parseRegrowth(description)
-    -- %d[%d.,]* is for handling , as the thousand separator
-    local initialHeal, healOverTime, duration = string.match(description, "Heals a friendly target for (%d[%d.,]*) and another (%d[%d.,]*) over (%d+) sec.");
-    if initialHeal == nil then
-        print("heal is null")
-        return -1;
-    end
-    return toNumber2(initialHeal) + toNumber2(healOverTime);
+
+
+-- "instantiate"/register a new spell object
+function PHD.Spell:NewWithId(spellId)
+    local definition = {}
+    setmetatable(definition, self)
+    self.__index = self
+    PHD.Spell.Implementations[spellId] = definition
+
+    definition.spellId = spellId
+
+    return definition
 end
 
-function parseLifebloom(description)
-    -- %d[%d.,]* is for handling , as the thousand separator
-    local healOverTime, duration, bloomHeal = string.match(description, "Heals the target for (%d[%d.,]*) over (%d+) sec. When Lifebloom expires or is dispelled, the target is instantly healed for (%d[%d.,]*). Limit 1.");
-    if healOverTime == nil then
-        print("heal is null")
-        return -1;
-    end
-    return toNumber2(healOverTime) + toNumber2(bloomHeal);
+-- default/fallback implementation for computations
+function PHD.Spell:Compute()
+    return {}
 end
 
-function parseSwiftmend(description)
-    -- %d[%d.,]* is for handling , as the thousand separator
-    local heal = string.match(description, "Instantly heals a friendly target for (%d[%d.,]*).");
-    if heal == nil then
-        print("heal is null")
-        return -1;
-    end
-    return toNumber2(heal);
+-- fetch current, updated statistics for a respective spell
+function PHD.Spell:GetStats()
+    local description = GetSpellDescription(self.spellId)
+    local name, rank, icon, castTime, minRange, maxRange, _ = GetSpellInfo(self.spellId)
+    local manaCost = PHD:GetManaCost(self.spellId)
+
+    self.description = description
+    self.manaCost = manaCost
 end
 
-GameTooltip:HookScript("OnTooltipSetSpell", OnTooltipSpell)
+-- returns "x per mana" for some value
+function PHD.Spell:GetValPerMana(val)
+    return val / self.manaCost
+end
+
+-- triggers value computations to run for a given spell implementation and takes care of the result
+function PHD.Spell:RunComputations()
+    self:GetStats()
+
+    local result = self:Compute()
+
+    -- convert stuff to numbers if they are strings
+    -- TODO: this doesn't seem to work... >_<
+    for k, v in pairs(result) do
+        if type(v) ~= 'string' then
+            result[k] = PHD:StrToNumber(v)
+        end
+    end
+
+    result.manaCost = self.manaCost
+
+    if result.heal then
+        result.hpm = self:GetValPerMana(result.heal)
+    end
+
+    if result.dmg then
+        result.dpm = self:GetValPerMana(result.dmg)
+    end
+
+    return result
+end
+
+
 
 -- just a function to print a table, nice for debugging
-function dump(o)
-    if type(o) == 'table' then
+function dump(definition)
+    if type(definition) == 'table' then
         local s = '{ '
-        for k, v in pairs(o) do
+        for k, v in pairs(definition) do
             if type(k) ~= 'number' then
                 k = '"' .. k .. '"'
             end
@@ -122,11 +143,6 @@ function dump(o)
         end
         return s .. '} '
     else
-        return tostring(o)
+        return tostring(definition)
     end
-end
-
-function toNumber2(number)
-    local withoutComma = string.gsub(number, ",", "");
-    return tonumber(withoutComma);
 end
