@@ -7,7 +7,10 @@ function Rejuvenation:Compute()
         return
     end
 
-    return { heal = PHD:StrToNumber(heal) }
+    return {
+        heal = PHD:StrToNumber(heal),
+        duration = duration
+    }
 end
 
 local Regrowth = PHD.Spell:NewWithId(8936)
@@ -21,7 +24,8 @@ function Regrowth:Compute()
     local hot = PHD:StrToNumber(healOverTime)
     return {
         heal = direct + hot,
-        hot = hot
+        hot = hot,
+        duration = duration
     }
 end
 
@@ -37,7 +41,8 @@ function Lifebloom:Compute()
     return {
         heal = bloom + hot,
         hot = hot,
-        postHeal = bloom
+        postHeal = bloom,
+        duration = duration
     }
 end
 
@@ -72,7 +77,8 @@ function WildGrowth:Compute()
 
     return {
         heal = heal,
-        aoeHpm = self:GetValPerMana(heal * 3)
+        aoeHpm = self:GetValPerMana(heal * 3),
+        duration = duration
     }
 end
 

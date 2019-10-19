@@ -24,14 +24,16 @@ function OnTooltipSetSpell(self)
     PHD:AddTooltipLine("Mana Cost: %i", stats.manaCost)
 
     if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
+    if stats.dps then PHD:AddTooltipLine("DPS: %i", stats.dps) end
     if stats.dpm then PHD:AddTooltipLine("DpM: %6.1f", stats.dpm) end
     if stats.aoeDpm then PHD:AddTooltipLine("AoE (3p) DpM: %6.1f", stats.aoeDpm) end
 
     if stats.heal then PHD:AddTooltipLine("Healing: %i", stats.heal) end
+    if stats.hps then PHD:AddTooltipLine("HPS: %i", stats.heal) end
+    if stats.hpm then PHD:AddTooltipLine("HpM: %6.1f", stats.hpm) end
     if stats.hot then PHD:AddTooltipLine("HoT: %i", stats.hot) end
     if stats.postHeal then PHD:AddTooltipLine("Post Heal: %i", stats.postHeal) end
     if stats.aoeHpm then PHD:AddTooltipLine("AoE (3p) HpM: %6.1f", stats.aoeHpm) end
-    if stats.hpm then PHD:AddTooltipLine("HpM: %6.1f", stats.hpm) end
 
     GameTooltip:Show()
 end
@@ -95,6 +97,7 @@ function PHD.Spell:GetStats()
 
     self.description = description
     self.manaCost = manaCost
+    self.castTime = castTime
 end
 
 -- returns "x per mana" for some value
@@ -120,10 +123,20 @@ function PHD.Spell:RunComputations()
 
     if result.heal then
         result.hpm = self:GetValPerMana(result.heal)
+        if result.duration then
+            result.hps = self:GetValuePerSecond(result.heal, result.duration)
+        else
+            result.hps = self:GetValuePerSecond(result.heal, result.castTime)
+        end
     end
 
     if result.dmg then
         result.dpm = self:GetValPerMana(result.dmg)
+        if result.duration then
+            result.dps = self:GetValuePerSecond(result.dmp, result.duration)
+        else
+            result.dps = self:GetValuePerSecond(result.dmp, result.castTime)
+        end
     end
 
     return result
