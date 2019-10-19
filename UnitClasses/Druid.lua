@@ -75,3 +75,17 @@ function WildGrowth:Compute()
         aoeHpm = self:GetValPerMana(heal * 3)
     }
 end
+
+local SolarWrath = PHD.Spell:NewWithId(5176)
+function SolarWrath:Compute()
+    local dmg = string.match(self.description, "Causes (%d[%d.,]*) Nature damage to the target.")
+    if dmg == nil then
+        return
+    end
+
+    local dmg = PHD:StrToNumber(dmg)
+
+    return {
+        dmg = dmg
+    }
+end
