@@ -76,6 +76,19 @@ function WildGrowth:Compute()
     }
 end
 
+local Efflorescence = PHD.Spell:NewWithId(145205)
+function Efflorescence:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local healPerTick, tickRate, duration = string.match(self.description, "Grows a healing blossom at the target location, restoring (%d[%d.,]*) health to three injured allies within 10 yards every (%d[%d.,]*) sec for (%d+) sec. Limit 1.")
+    if heal == nil then
+        return
+    end
+
+    -- todo this should probably me treated like a new spell time instead
+    local heal = (PHD:StrToNumber(healPerTick) / PHD:StrToNumber(tickRate)) * duration
+    return { heal = heal }
+end
+
 local SolarWrath = PHD.Spell:NewWithId(5176)
 function SolarWrath:Compute()
     local dmg = string.match(self.description, "Causes (%d[%d.,]*) Nature damage to the target.")
