@@ -26,14 +26,14 @@ function OnTooltipSetSpell(self)
     if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
     if stats.dps then PHD:AddTooltipLine("DPS: %i", stats.dps) end
     if stats.dpm then PHD:AddTooltipLine("DpM: %6.1f", stats.dpm) end
-    if stats.aoeDpm then PHD:AddTooltipLine("AoE (3p) DpM: %6.1f", stats.aoeDpm) end
+    if stats.aoeDpmThreeTargets then PHD:AddTooltipLine("AoE (3p) DpM: %6.1f", stats.aoeDpmThreeTargets) end
 
     if stats.heal then PHD:AddTooltipLine("Healing: %i", stats.heal) end
     if stats.hps then PHD:AddTooltipLine("HPS: %i", stats.heal) end
     if stats.hpm then PHD:AddTooltipLine("HpM: %6.1f", stats.hpm) end
     if stats.hot then PHD:AddTooltipLine("HoT: %i", stats.hot) end
     if stats.postHeal then PHD:AddTooltipLine("Post Heal: %i", stats.postHeal) end
-    if stats.aoeHpm then PHD:AddTooltipLine("AoE (3p) HpM: %6.1f", stats.aoeHpm) end
+    if stats.aoeHpmThreeTargets then PHD:AddTooltipLine("AoE (3p) HpM: %6.1f", stats.aoeHpmThreeTargets) end
 
     GameTooltip:Show()
 end
@@ -69,8 +69,6 @@ function PHD:StrToNumber(str)
     local withoutComma = string.gsub(str, ",", "");
     return tonumber(withoutComma);
 end
-
-
 
 -- "instantiate"/register a new spell object
 function PHD.Spell:NewWithId(spellId)
@@ -137,6 +135,14 @@ function PHD.Spell:RunComputations()
         else
             result.dps = self:GetValuePerSecond(result.dmp, result.castTime)
         end
+    end
+
+    if result.aoeDpm then
+        result.aoeDpmThreeTargets = result.aoeDpm * 3
+    end
+
+    if result.aoeHpm then
+        result.aoeHpmThreeTargets = result.aoeHpm * 3
     end
 
     return result

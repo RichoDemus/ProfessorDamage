@@ -77,7 +77,7 @@ function WildGrowth:Compute()
 
     return {
         heal = heal,
-        aoeHpm = self:GetValPerMana(heal * 3),
+        aoeHpm = self:GetValPerMana(heal),
         duration = duration
     }
 end

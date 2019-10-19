@@ -44,7 +44,7 @@ function LightOfDawn:Compute()
 
     return {
         heal = heal,
-        aoeHpm = self:GetValPerMana(heal * 3)
+        aoeHpm = self:GetValPerMana(heal)
     }
 end
 
@@ -85,9 +85,9 @@ function HolyPrism:Compute()
 
     return {
         dmg = PHD:StrToNumber(offensiveDmg),
-        aoeDpm = self:GetValPerMana(defDmg * 3),
+        aoeDpm = self:GetValPerMana(defDmg),
 
         heal = PHD:StrToNumber(defensiveHeal),
-        aoeHpm = self:GetValPerMana(offHeal * 3)
+        aoeHpm = self:GetValPerMana(offHeal)
     }
 end
