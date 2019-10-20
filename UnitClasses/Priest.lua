@@ -74,3 +74,25 @@ function PowerWordSolace:Compute()
 
     return { dmg = PHD:StrToNumber(dmg) }
 end
+
+local Smite = PHD.Spell:NewWithId(585)
+function Smite:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local dmg = string.match(self.description, "Smites an enemy for (%d[%d.,]*) Holy damage")
+    if dmg == nil then
+        return
+    end
+
+    return { dmg = PHD:StrToNumber(dmg) }
+end
+
+local Schism = PHD.Spell:NewWithId(214621)
+function Schism:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local dmg = string.match(self.description, "surge of Shadow energy, dealing (%d[%d.,]*) Shadow damage")
+    if dmg == nil then
+        return
+    end
+
+    return { dmg = PHD:StrToNumber(dmg) }
+end

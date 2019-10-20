@@ -1,7 +1,7 @@
 
 -- Professor H. Damage at your service! (it's french, probably)
 PHD = {}
-PHD.DEBUG = true
+PHD.DEBUG = false
 PHD.Spell = { descriptionMatcher = "" }
 PHD.Spell.Implementations = {}
 
