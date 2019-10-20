@@ -40,7 +40,7 @@ function LightOfDawn:Compute()
         return
     end
 
-    local heal = PHD:StrToNumber(heal)
+    heal = PHD:StrToNumber(heal)
 
     return {
         heal = heal,
