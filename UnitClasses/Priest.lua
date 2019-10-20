@@ -12,7 +12,6 @@ end
 
 local Penance = PHD.Spell:NewWithId(47540)
 function Penance:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local dmg, heal, channelTimeSec = string.match(self.description, "Launches a volley of holy light at the target, causing (%d[%d.,]*) Holy damage to an enemy or (%d[%d.,]*) healing to an ally over (%d[%d.,]*) sec.")
     if heal == nil then
         return
@@ -31,7 +30,6 @@ end
 
 local PowerWordShield = PHD.Spell:NewWithId(17)
 function PowerWordShield:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local absorb, weakenedSoulDurationSec = string.match(self.description, "absorbing (%d[%d.,]*) damage.  You cannot shield the target again for (%d[%d.,]*) sec.")
     if absorb == nil or weakenedSoulDurationSec == nil then
         return
@@ -48,9 +46,27 @@ function PowerWordShield:Compute()
     }
 end
 
+local LuminousBarrier = PHD.Spell:NewWithId(271466)
+function LuminousBarrier:Compute()
+    local absorb = string.match(self.description, "absorbing (%d[%d.,]*) damage on each of them")
+    if absorb == nil then
+        return
+    end
+
+    absorb = PHD:StrToNumber(absorb)
+
+    return {
+        absorb = absorb,
+        hps = self:GetValPerSecond(absorb),
+        hpsc = self:GetValPerSecondAccomodateForCooldown(absorb),
+        hpm = self:GetValPerMana(absorb),
+        aoeHps = self:GetValPerSecond(absorb * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpm = self:GetValPerMana(absorb * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
 local PowerWordRadiance = PHD.Spell:NewWithId(194509)
 function PowerWordRadiance:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local heal = string.match(self.description, "injured allies within 30 yards for (%d[%d.,]*)")
     if heal == nil then
         return
@@ -60,14 +76,13 @@ function PowerWordRadiance:Compute()
 
     return {
         heal = heal,
-        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
 
 local PowerWordSolace = PHD.Spell:NewWithId(129250)
 function PowerWordSolace:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local dmg = string.match(self.description, "with heavenly power, dealing (%d[%d.,]*) Holy damage")
     if dmg == nil then
         return
@@ -78,7 +93,6 @@ end
 
 local Smite = PHD.Spell:NewWithId(585)
 function Smite:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local dmg = string.match(self.description, "Smites an enemy for (%d[%d.,]*) Holy damage")
     if dmg == nil then
         return
@@ -89,7 +103,6 @@ end
 
 local Schism = PHD.Spell:NewWithId(214621)
 function Schism:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local dmg = string.match(self.description, "surge of Shadow energy, dealing (%d[%d.,]*) Shadow damage")
     if dmg == nil then
         return
@@ -100,7 +113,6 @@ end
 
 local PurgeTheWicked = PHD.Spell:NewWithId(204197)
 function PurgeTheWicked:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local direct, dot, duration = string.match(self.description, "causing (%d[%d.,]*) Fire damage and an additional (%d[%d.,]*) Fire damage over (%d+) sec.")
     if direct == nil or dot == nil or duration == nil then
         return
@@ -121,7 +133,6 @@ end
 
 local HolyNova = PHD.Spell:NewWithId(132157)
 function HolyNova:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local dmg, heal = string.match(self.description, "dealing (%d[%d.,]*) Holy damage to all enemies and (%d[%d.,]*) healing")
     if dmg == nil or heal == nil then
         return
@@ -132,17 +143,16 @@ function HolyNova:Compute()
 
     return {
         dmg = dmg,
-        aoeDps = self:GetValPerSecondAccomodateForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDps = self:GetValPerSecond(dmg * PHD.AOE_AVERAGE_TARGETS),
         aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
         heal = heal,
-        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
 
 local Halo = PHD.Spell:NewWithId(120517)
 function Halo:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local heal, dmg = string.match(self.description, "healing allies for (%d[%d.,]*) and dealing (%d[%d.,]*) Holy damage")
     if heal == nil or dmg == nil then
         return
@@ -153,17 +163,16 @@ function Halo:Compute()
 
     return {
         dmg = dmg,
-        aoeDps = self:GetValPerSecondAccomodateForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDps = self:GetValPerSecond(dmg * PHD.AOE_AVERAGE_TARGETS),
         aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
         heal = heal,
-        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
 
 local DivineStar = PHD.Spell:NewWithId(110744)
 function DivineStar:Compute()
-    -- %d[%d.,]* is for handling , as the thousand separator
     local heal, dmg = string.match(self.description, "healing allies in its path for (%d[%d.,]*) and dealing (%d[%d.,]*) Holy damage")
     if heal == nil or dmg == nil then
         return
@@ -174,10 +183,10 @@ function DivineStar:Compute()
 
     return {
         dmg = dmg,
-        aoeDps = self:GetValPerSecondAccomodateForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDps = self:GetValPerSecond(dmg * PHD.AOE_AVERAGE_TARGETS),
         aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
         heal = heal,
-        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
