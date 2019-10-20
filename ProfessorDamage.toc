@@ -2,7 +2,7 @@
 ## Version: 0.0.1
 ## Title: Professor Damage
 ## Notes: Displays Detailed Spell Tooltips
-## Author: RichoDemus
+## Author: RichoDemus, Osaou
 
 
 ProfessorDamage.lua

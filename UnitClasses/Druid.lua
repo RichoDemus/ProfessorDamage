@@ -50,3 +50,42 @@ function Swiftmend:Compute()
 
     return { heal = PHD:StrToNumber(heal) }
 end
+
+local Nourish = PHD.Spell:NewWithId(289022)
+function Nourish:Compute()
+    local heal = string.match(self.description, "Heals a friendly target for (%d[%d.,]*) and automatically applies one of your missing healing over time spells to the target. If all of them are present, Nourish critically heals.")
+    if heal == nil then
+        return
+    end
+
+    return { heal = PHD:StrToNumber(heal) }
+end
+
+local WildGrowth = PHD.Spell:NewWithId(48438)
+function WildGrowth:Compute()
+    local heal, duration = string.match(self.description, "Heals up to 6 injured allies within 30 yards of the target for (%d[%d.,]*) over (%d+) sec. Healing starts high and declines over the duration.")
+    if heal == nil then
+        return
+    end
+
+    local heal = PHD:StrToNumber(heal)
+
+    return {
+        heal = heal,
+        aoeHpm = self:GetValPerMana(heal * 3)
+    }
+end
+
+local SolarWrath = PHD.Spell:NewWithId(5176)
+function SolarWrath:Compute()
+    local dmg = string.match(self.description, "Causes (%d[%d.,]*) Nature damage to the target.")
+    if dmg == nil then
+        return
+    end
+
+    local dmg = PHD:StrToNumber(dmg)
+
+    return {
+        dmg = dmg
+    }
+end
