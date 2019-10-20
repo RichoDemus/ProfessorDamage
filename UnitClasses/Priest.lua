@@ -60,7 +60,7 @@ function PowerWordRadiance:Compute()
 
     return {
         heal = heal,
-        aoeHpm = self:GetValPerMana(heal * 3)
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
 
@@ -115,5 +115,25 @@ function PurgeTheWicked:Compute()
         instantDmg = direct,
         dot = dot,
         dpsc = self:GetValPerSecondAccomodateForCooldown(dmg, duration)
+    }
+end
+
+local HolyNova = PHD.Spell:NewWithId(132157)
+function HolyNova:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local dmg, heal = string.match(self.description, "dealing (%d[%d.,]*) Holy damage to all enemies and (%d[%d.,]*) healing")
+    if dmg == nil or heal == nil then
+        return
+    end
+
+    dmg = PHD:StrToNumber(dmg)
+    heal = PHD:StrToNumber(heal)
+
+    return {
+        dmg = dmg,
+        aoeDps = self:GetValPerSecond(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
+        heal = heal,
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end

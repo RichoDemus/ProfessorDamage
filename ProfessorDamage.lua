@@ -2,6 +2,10 @@
 -- Professor H. Damage at your service! (it's french, probably)
 PHD = {}
 PHD.DEBUG = true
+
+-- should be configurable at some point
+PHD.AOE_AVERAGE_TARGETS = 3
+
 PHD.Spell = { descriptionMatcher = "" }
 PHD.Spell.Implementations = {}
 
