@@ -63,3 +63,14 @@ function PowerWordRadiance:Compute()
         aoeHpm = self:GetValPerMana(heal * 3)
     }
 end
+
+local PowerWordSolace = PHD.Spell:NewWithId(129250)
+function PowerWordSolace:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local dmg = string.match(self.description, "with heavenly power, dealing (%d[%d.,]*) Holy damage")
+    if dmg == nil then
+        return
+    end
+
+    return { dmg = PHD:StrToNumber(dmg) }
+end

@@ -1,7 +1,7 @@
 
 -- Professor H. Damage at your service! (it's french, probably)
 PHD = {}
-PHD.DEBUG = false
+PHD.DEBUG = true
 PHD.Spell = { descriptionMatcher = "" }
 PHD.Spell.Implementations = {}
 
@@ -38,7 +38,9 @@ local function OnTooltipSetSpell(self)
     if stats.aoeDpsc then PHD:AddTooltipLine("AoE (3p) DpSC: %i", stats.aoeDpsc) end
     if stats.aoeDpm then PHD:AddTooltipLine("AoE (3p) DpM: %1.1f", stats.aoeDpm) end
 
-    PHD:AddTooltipDivider()
+    if stats.hps or stats.hpm then
+        PHD:AddTooltipDivider()
+    end
 
     -- healing
     if stats.absorb then PHD:AddTooltipLine("Absorb: %i", stats.absorb) end
@@ -79,6 +81,10 @@ end
 function PHD:GetManaCost(spellId)
     -- returns a collection of mana costs since different spells use different resources
     local costs = GetSpellPowerCost(spellId)
+
+    if not costs[1] then
+        return 0
+    end
 
     -- I think [1] is always mana
     local manaCost = costs[1].cost
@@ -182,6 +188,9 @@ end
 
 -- returns "x per mana" for some value
 function PHD.Spell:GetValPerMana(val)
+    if self.manaCost <= 0 then
+        return nil
+    end
     return val / self.manaCost
 end
 
