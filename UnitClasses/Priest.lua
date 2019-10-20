@@ -60,6 +60,7 @@ function PowerWordRadiance:Compute()
 
     return {
         heal = heal,
+        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
@@ -131,9 +132,52 @@ function HolyNova:Compute()
 
     return {
         dmg = dmg,
-        aoeDps = self:GetValPerSecond(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDps = self:GetValPerSecondAccomodateForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
         aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
         heal = heal,
+        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local Halo = PHD.Spell:NewWithId(120517)
+function Halo:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local heal, dmg = string.match(self.description, "healing allies for (%d[%d.,]*) and dealing (%d[%d.,]*) Holy damage")
+    if heal == nil or dmg == nil then
+        return
+    end
+
+    dmg = PHD:StrToNumber(dmg)
+    heal = PHD:StrToNumber(heal)
+
+    return {
+        dmg = dmg,
+        aoeDps = self:GetValPerSecondAccomodateForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
+        heal = heal,
+        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local DivineStar = PHD.Spell:NewWithId(110744)
+function DivineStar:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local heal, dmg = string.match(self.description, "healing allies in its path for (%d[%d.,]*) and dealing (%d[%d.,]*) Holy damage")
+    if heal == nil or dmg == nil then
+        return
+    end
+
+    dmg = PHD:StrToNumber(dmg) * 2
+    heal = PHD:StrToNumber(heal) * 2
+
+    return {
+        dmg = dmg,
+        aoeDps = self:GetValPerSecondAccomodateForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
+        heal = heal,
+        aoeHps = self:GetValPerSecondAccomodateForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
