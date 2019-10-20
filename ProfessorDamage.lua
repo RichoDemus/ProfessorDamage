@@ -1,7 +1,7 @@
 
 -- Professor H. Damage at your service! (it's french, probably)
 PHD = {}
-PHD.DEBUG = false
+PHD.DEBUG = true
 PHD.Spell = { descriptionMatcher = "" }
 PHD.Spell.Implementations = {}
 
@@ -31,6 +31,8 @@ local function OnTooltipSetSpell(self)
 
     -- damage
     if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
+    if stats.dot then PHD:AddTooltipLine("DoT: %i", stats.dot) end
+    if stats.instantDmg then PHD:AddTooltipLine("Instant Dmg: %i", stats.instantDmg) end
     if stats.dps then PHD:AddTooltipLine("DpS: %i", stats.dps) end
     if stats.dpsc then PHD:AddTooltipLine("DpSC: %i", stats.dpsc) end
     if stats.dpm then PHD:AddTooltipLine("DpM: %1.1f", stats.dpm) end
@@ -198,7 +200,7 @@ end
 function PHD.Spell:RunComputations()
     self:GetStats()
 
-    local result = self:Compute()
+    local result = self:Compute() or {}
 
     -- convert stuff to numbers if they are strings
     -- TODO: this doesn't seem to work... >_<

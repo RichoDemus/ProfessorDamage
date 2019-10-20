@@ -96,3 +96,24 @@ function Schism:Compute()
 
     return { dmg = PHD:StrToNumber(dmg) }
 end
+
+local PurgeTheWicked = PHD.Spell:NewWithId(204197)
+function PurgeTheWicked:Compute()
+    -- %d[%d.,]* is for handling , as the thousand separator
+    local direct, dot, duration = string.match(self.description, "causing (%d[%d.,]*) Fire damage and an additional (%d[%d.,]*) Fire damage over (%d+) sec.")
+    if direct == nil or dot == nil or duration == nil then
+        return
+    end
+
+    direct = PHD:StrToNumber(direct)
+    dot = PHD:StrToNumber(dot)
+    duration = PHD:StrToNumber(duration) * 1000
+    dmg = direct + dot
+
+    return {
+        dmg = dmg,
+        instantDmg = direct,
+        dot = dot,
+        dpsc = self:GetValPerSecondAccomodateForCooldown(dmg, duration)
+    }
+end
