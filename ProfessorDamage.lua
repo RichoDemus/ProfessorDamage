@@ -13,7 +13,10 @@ local function OnTooltipSetSpell(self)
 
     -- not a spell the jedi would tell you about?
     if spell == nil then
-        PHD:AddTooltipLine("Spell id: %i", spellId)
+        if PHD.DEBUG then
+            PHD:AddTooltipLine("Spell id: %i", spellId)
+        end
+        
         GameTooltip:Show()
         return
     end
