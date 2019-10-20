@@ -219,7 +219,7 @@ function PHD.Spell:RunComputations()
             result.dps = self:GetValPerSecond(result.dmg)
         end
         if not result.dpsc then
-            result.dpsc = self:GetValPerSecondAccomodateForCooldown(result.dmg)
+            local dpsc = self:GetValPerSecondAccomodateForCooldown(result.dmg)
             if dpsc ~= result.dps then
                 result.dpsc = dpsc
             end
