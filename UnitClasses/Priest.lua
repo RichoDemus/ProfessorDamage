@@ -25,7 +25,7 @@ function Penance:Compute()
         dmg = PHD:StrToNumber(dmg),
         heal = heal,
         hps = self:GetValPerSecond(heal, channelTimeSec),
-        hpsc = self:GetValPerSecondAccomodateForCooldown(heal, channelTimeSec)
+        hpsc = self:GetValPerSecondAccountForCooldown(heal, channelTimeSec)
     }
 end
 
@@ -43,7 +43,7 @@ function PowerWordShield:Compute()
     return {
         absorb = absorb,
         hps = self:GetValPerSecond(absorb),
-        hpsc = self:GetValPerSecondAccomodateForCooldown(absorb, weakenedSoulDurationSec),
+        hpsc = self:GetValPerSecondAccountForCooldown(absorb, weakenedSoulDurationSec),
         hpm = self:GetValPerMana(absorb)
     }
 end

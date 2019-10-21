@@ -29,6 +29,7 @@ local function OnTooltipSetSpell(self)
     PHD.isAppropriateToShowDivider = true
     PHD:AddTooltipDivider()
 
+    -- damage
     if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
     if stats.dps then PHD:AddTooltipLine("DpS: %i", stats.dps) end
     if stats.dpsc then PHD:AddTooltipLine("DpSC: %i", stats.dpsc) end
@@ -39,6 +40,7 @@ local function OnTooltipSetSpell(self)
 
     PHD:AddTooltipDivider()
 
+    -- healing
     if stats.absorb then PHD:AddTooltipLine("Absorb: %i", stats.absorb) end
     if stats.heal then PHD:AddTooltipLine("Healing: %i", stats.heal) end
     if stats.hot then PHD:AddTooltipLine("HoT: %i", stats.hot) end
@@ -141,18 +143,18 @@ function PHD.Spell:GetStats()
     self.manaCost = manaCost or 0
 end
 
--- returns "x per second" for some value
+-- returns "x per second" for some value, such as dps, hps
 function PHD.Spell:GetValPerSecond(val, channelingTimeMs)
     return self:_GetValPerSecond(val, channelingTimeMs, false)
 end
 
--- returns "x per second" for some value, but accomodate for cooldown, etc
-function PHD.Spell:GetValPerSecondAccomodateForCooldown(val, channelingTimeMs)
+-- returns "x per second" for some value, but account for cooldown, to get dpsc, hpsc, etc
+function PHD.Spell:GetValPerSecondAccountForCooldown(val, channelingTimeMs)
     return self:_GetValPerSecond(val, channelingTimeMs, true)
 end
 
 -- returns "x per second" for some value
--- can accomodate for cooldown, recharge time, etc
+-- can account for cooldown, recharge time, etc
 function PHD.Spell:_GetValPerSecond(val, channelingTimeMs, shouldAccomodateForCooldowns)
     local cooldownMs
     if channelingTimeMs then
@@ -207,7 +209,7 @@ function PHD.Spell:RunComputations()
             result.hps = self:GetValPerSecond(result.heal)
         end
         if not result.hpsc then
-            local hpsc = self:GetValPerSecondAccomodateForCooldown(result.heal)
+            local hpsc = self:GetValPerSecondAccountForCooldown(result.heal)
             if hpsc ~= result.hps then
                 result.hpsc = hpsc
             end
@@ -222,7 +224,7 @@ function PHD.Spell:RunComputations()
             result.dps = self:GetValPerSecond(result.dmg)
         end
         if not result.dpsc then
-            local dpsc = self:GetValPerSecondAccomodateForCooldown(result.dmg)
+            local dpsc = self:GetValPerSecondAccountForCooldown(result.dmg)
             if dpsc ~= result.dps then
                 result.dpsc = dpsc
             end
