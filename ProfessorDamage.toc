@@ -9,3 +9,4 @@ ProfessorDamage.lua
 
 UnitClasses\Druid.lua
 UnitClasses\Paladin.lua
+UnitClasses\Priest.lua
