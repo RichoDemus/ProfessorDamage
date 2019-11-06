@@ -1,7 +1,7 @@
 
 -- Professor H. Damage at your service! (it's french, probably)
 PHD = {}
-PHD.DEBUG = true
+PHD.DEBUG = false
 
 -- should be configurable at some point
 PHD.AOE_AVERAGE_TARGETS = 3
