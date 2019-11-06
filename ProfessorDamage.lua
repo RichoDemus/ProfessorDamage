@@ -167,7 +167,7 @@ end
 
 -- returns "x per second" for some value
 -- can account for cooldown, recharge time, etc
-function PHD.Spell:_GetValPerSecond(val, channelingTimeMs, shouldAccomodateForCooldowns)
+function PHD.Spell:_GetValPerSecond(val, channelingTimeMs, shouldAccountForCooldowns)
     local cooldownMs
     if channelingTimeMs then
         cooldownMs = channelingTimeMs
@@ -175,7 +175,7 @@ function PHD.Spell:_GetValPerSecond(val, channelingTimeMs, shouldAccomodateForCo
         cooldownMs = self.castTimeMs
     end
 
-    if shouldAccomodateForCooldowns then
+    if shouldAccountForCooldowns then
         if cooldownMs <= self.rechargeTimeMs then
             cooldownMs = self.rechargeTimeMs
         end

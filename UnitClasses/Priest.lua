@@ -58,7 +58,7 @@ function LuminousBarrier:Compute()
     return {
         absorb = absorb,
         hps = self:GetValPerSecond(absorb),
-        hpsc = self:GetValPerSecondAccomodateForCooldown(absorb),
+        hpsc = self:GetValPerSecondAccountForCooldown(absorb),
         hpm = self:GetValPerMana(absorb),
         aoeHps = self:GetValPerSecond(absorb * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(absorb * PHD.AOE_AVERAGE_TARGETS)
@@ -127,7 +127,7 @@ function PurgeTheWicked:Compute()
         dmg = dmg,
         instantDmg = direct,
         dot = dot,
-        dpsc = self:GetValPerSecondAccomodateForCooldown(dmg, duration)
+        dpsc = self:GetValPerSecondAccountForCooldown(dmg, duration)
     }
 end
 
