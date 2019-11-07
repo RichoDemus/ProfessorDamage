@@ -2,6 +2,10 @@
 -- Professor H. Damage at your service! (it's french, probably)
 PHD = {}
 PHD.DEBUG = false
+
+-- should be configurable at some point
+PHD.AOE_AVERAGE_TARGETS = 3
+
 PHD.Spell = { descriptionMatcher = "" }
 PHD.Spell.Implementations = {}
 
@@ -31,6 +35,8 @@ local function OnTooltipSetSpell(self)
 
     -- damage
     if stats.dmg then PHD:AddTooltipLine("Damage: %i", stats.dmg) end
+    if stats.dot then PHD:AddTooltipLine("DoT: %i", stats.dot) end
+    if stats.instantDmg then PHD:AddTooltipLine("Instant Dmg: %i", stats.instantDmg) end
     if stats.dps then PHD:AddTooltipLine("DpS: %i", stats.dps) end
     if stats.dpsc then PHD:AddTooltipLine("DpSC: %i", stats.dpsc) end
     if stats.dpm then PHD:AddTooltipLine("DpM: %1.1f", stats.dpm) end
@@ -38,7 +44,9 @@ local function OnTooltipSetSpell(self)
     if stats.aoeDpsc then PHD:AddTooltipLine("AoE (3p) DpSC: %i", stats.aoeDpsc) end
     if stats.aoeDpm then PHD:AddTooltipLine("AoE (3p) DpM: %1.1f", stats.aoeDpm) end
 
-    PHD:AddTooltipDivider()
+    if stats.hps or stats.hpm then
+        PHD:AddTooltipDivider()
+    end
 
     -- healing
     if stats.absorb then PHD:AddTooltipLine("Absorb: %i", stats.absorb) end
@@ -79,6 +87,10 @@ end
 function PHD:GetManaCost(spellId)
     -- returns a collection of mana costs since different spells use different resources
     local costs = GetSpellPowerCost(spellId)
+
+    if not costs[1] then
+        return 0
+    end
 
     -- I think [1] is always mana
     local manaCost = costs[1].cost
@@ -155,7 +167,7 @@ end
 
 -- returns "x per second" for some value
 -- can account for cooldown, recharge time, etc
-function PHD.Spell:_GetValPerSecond(val, channelingTimeMs, shouldAccomodateForCooldowns)
+function PHD.Spell:_GetValPerSecond(val, channelingTimeMs, shouldAccountForCooldowns)
     local cooldownMs
     if channelingTimeMs then
         cooldownMs = channelingTimeMs
@@ -163,7 +175,7 @@ function PHD.Spell:_GetValPerSecond(val, channelingTimeMs, shouldAccomodateForCo
         cooldownMs = self.castTimeMs
     end
 
-    if shouldAccomodateForCooldowns then
+    if shouldAccountForCooldowns then
         if cooldownMs <= self.rechargeTimeMs then
             cooldownMs = self.rechargeTimeMs
         end
@@ -182,6 +194,9 @@ end
 
 -- returns "x per mana" for some value
 function PHD.Spell:GetValPerMana(val)
+    if self.manaCost <= 0 then
+        return nil
+    end
     return val / self.manaCost
 end
 
@@ -189,7 +204,7 @@ end
 function PHD.Spell:RunComputations()
     self:GetStats()
 
-    local result = self:Compute()
+    local result = self:Compute() or {}
 
     -- convert stuff to numbers if they are strings
     -- TODO: this doesn't seem to work... >_<
