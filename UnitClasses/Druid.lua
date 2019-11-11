@@ -72,7 +72,7 @@ function WildGrowth:Compute()
 
     return {
         heal = heal,
-        aoeHpm = self:GetValPerMana(heal * 3)
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
 

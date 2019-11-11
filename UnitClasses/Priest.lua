@@ -18,13 +18,13 @@ function Penance:Compute()
     end
 
     heal = PHD:StrToNumber(heal)
-    channelTimeSec = PHD:StrToNumber(channelTimeSec) * 1000
+    local channelTimeMs = PHD:StrToNumber(channelTimeSec) * 1000
 
     return {
         dmg = PHD:StrToNumber(dmg),
         heal = heal,
-        hps = self:GetValPerSecond(heal, channelTimeSec),
-        hpsc = self:GetValPerSecondAccountForCooldown(heal, channelTimeSec)
+        hps = self:GetValPerSecond(heal, channelTimeMs),
+        hpsc = self:GetValPerSecondAccountForCooldown(heal, channelTimeMs)
     }
 end
 
@@ -61,6 +61,7 @@ function LuminousBarrier:Compute()
         hpsc = self:GetValPerSecondAccountForCooldown(absorb),
         hpm = self:GetValPerMana(absorb),
         aoeHps = self:GetValPerSecond(absorb * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(absorb * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(absorb * PHD.AOE_AVERAGE_TARGETS)
     }
 end
@@ -77,6 +78,7 @@ function PowerWordRadiance:Compute()
     return {
         heal = heal,
         aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
@@ -164,9 +166,11 @@ function Halo:Compute()
     return {
         dmg = dmg,
         aoeDps = self:GetValPerSecond(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDpsc = self:GetValPerSecondAccountForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
         aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
         heal = heal,
         aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
     }
 end
@@ -184,9 +188,183 @@ function DivineStar:Compute()
     return {
         dmg = dmg,
         aoeDps = self:GetValPerSecond(dmg * PHD.AOE_AVERAGE_TARGETS),
+        aoeDpsc = self:GetValPerSecondAccountForCooldown(dmg * PHD.AOE_AVERAGE_TARGETS),
         aoeDpm = self:GetValPerMana(dmg * PHD.AOE_AVERAGE_TARGETS),
         heal = heal,
         aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
         aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local Heal = PHD.Spell:NewWithId(2060)
+function Heal:Compute()
+    local heal = string.match(self.description, "An efficient spell that heals an ally for (%d[%d.,]*).")
+    if heal == nil then
+        return
+    end
+
+    return { heal = PHD:StrToNumber(heal) }
+end
+
+local FlashHeal = PHD.Spell:NewWithId(2061)
+function FlashHeal:Compute()
+    local heal = string.match(self.description, "A fast spell that heals an ally for (%d[%d.,]*).")
+    if heal == nil then
+        return
+    end
+
+    return { heal = PHD:StrToNumber(heal) }
+end
+
+local HolyWordSerenity = PHD.Spell:NewWithId(2050)
+function HolyWordSerenity:Compute()
+    local heal = string.match(self.description, "Perform a miracle, healing an ally for (%d[%d.,]*).")
+    if heal == nil then
+        return
+    end
+
+    return { heal = PHD:StrToNumber(heal) }
+end
+
+local PrayerOfMending = PHD.Spell:NewWithId(33076)
+function PrayerOfMending:Compute()
+    local heal = string.match(self.description, "that heals them for (%d[%d.,]*)")
+    if heal == nil then
+        return
+    end
+
+    heal = PHD:StrToNumber(heal)
+
+    return {
+        heal = heal,
+        hps = PHD.IGNORE_STAT,
+        hpsc = PHD.IGNORE_STAT,
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local HolyWordSanctify = PHD.Spell:NewWithId(34861)
+function HolyWordSanctify:Compute()
+    local range, heal = string.match(self.description, "within (%d+) yds for (%d[%d.,]*)")
+    if heal == nil then
+        return
+    end
+
+    heal = PHD:StrToNumber(heal)
+
+    return {
+        heal = heal,
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local PrayerOfHealing = PHD.Spell:NewWithId(596)
+function PrayerOfHealing:Compute()
+    local count, range, heal = string.match(self.description, "A powerful prayer that heals the target and the (%d+) nearest allies within (%d+) yards for (%d[%d.,]*)")
+    if heal == nil then
+        return
+    end
+
+    heal = PHD:StrToNumber(heal)
+
+    return {
+        heal = heal,
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local DivineHymn = PHD.Spell:NewWithId(64843)
+function DivineHymn:Compute()
+    local range, heal, channelTimeSec = string.match(self.description, "Heals all party or raid members within (%d+) yards for (%d[%d.,]*) over (%d[%d.,]*) sec")
+    if heal == nil then
+        return
+    end
+
+    heal = PHD:StrToNumber(heal) * 2
+    local channelTimeMs = PHD:StrToNumber(channelTimeSec) * 1000
+
+    return {
+        heal = heal,
+        hps = self:GetValPerSecond(heal, channelTimeMs),
+        hpsc = self:GetValPerSecondAccountForCooldown(heal, channelTimeMs),
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS, channelTimeMs),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(heal * PHD.AOE_AVERAGE_TARGETS, channelTimeMs),
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local HolyWordSalvation = PHD.Spell:NewWithId(265202)
+function HolyWordSalvation:Compute()
+    local range, heal = string.match(self.description, "Heals all allies within (%d+) yards for (%d[%d.,]*)")
+    if heal == nil then
+        return
+    end
+
+    heal = PHD:StrToNumber(heal)
+
+    -- TODO: add stats for the Renew and PoM stacks as well? ...how?
+    return {
+        heal = heal,
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local CircleOfHealing = PHD.Spell:NewWithId(204883)
+function CircleOfHealing:Compute()
+    local count, range, heal = string.match(self.description, "Heals the target and (%d+) injured allies within (%d+) yards of the target for (%d[%d.,]*)")
+    if heal == nil then
+        return
+    end
+
+    heal = PHD:StrToNumber(heal)
+
+    return {
+        heal = heal,
+        aoeHps = self:GetValPerSecond(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpsc = self:GetValPerSecondAccountForCooldown(heal * PHD.AOE_AVERAGE_TARGETS),
+        aoeHpm = self:GetValPerMana(heal * PHD.AOE_AVERAGE_TARGETS)
+    }
+end
+
+local BindingHeal = PHD.Spell:NewWithId(32546)
+function BindingHeal:Compute()
+    local range, heal = string.match(self.description, "Heals you, your target, and another friendly target within (%d+) yards for (%d[%d.,]*)")
+    if heal == nil then
+        return
+    end
+
+    heal = PHD:StrToNumber(heal)
+    local count = 3
+
+    return {
+        heal = heal,
+        aoeHps = self:GetValPerSecond(heal * count),
+        aoeHpm = self:GetValPerMana(heal * count)
+    }
+end
+
+local Renew = PHD.Spell:NewWithId(139)
+function Renew:Compute()
+    local initialHeal, healOverTime, durationSec = string.match(self.description, "healing them instantly for (%d[%d.,]*) and then (%d[%d.,]*) over (%d+) sec")
+    if initialHeal == nil or healOverTime == nil then
+        return
+    end
+
+    local direct = PHD:StrToNumber(initialHeal)
+    local hot = PHD:StrToNumber(healOverTime)
+    heal = direct + hot
+    local durationMs = PHD:StrToNumber(durationSec) * 1000
+
+    return {
+        heal = heal,
+        hot = hot,
+        hps = self:GetValPerSecond(heal, durationMs),
+        hpsc = PHD.IGNORE_STAT
     }
 end
